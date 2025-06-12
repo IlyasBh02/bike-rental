@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bike Rental - Gestion de Location de Vélos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        .feature-card {
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #007bff 0%, #00bcd4 100%);
+            color: white;
+            padding: 4rem 0;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-bicycle"></i> Bike Rental
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Accueil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pages/bikes.html">Vélos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pages/rentals.html">Locations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pages/reservations.html">Réservations</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <button class="btn btn-light" onclick="logout()">Déconnexion</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4">Bienvenue sur Bike Rental</h1>
+            <p class="lead">Système de gestion de location de vélos</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card h-100" onclick="window.location.href='pages/bikes.html'">
+                    <div class="card-body text-center">
+                        <i class="bi bi-bicycle display-1 text-primary mb-3"></i>
+                        <h3 class="card-title">Gestion des Vélos</h3>
+                        <p class="card-text">Gérez votre parc de vélos, leur disponibilité et leur état.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100" onclick="window.location.href='pages/rentals.html'">
+                    <div class="card-body text-center">
+                        <i class="bi bi-calendar-check display-1 text-success mb-3"></i>
+                        <h3 class="card-title">Locations</h3>
+                        <p class="card-text">Suivez les locations en cours et l'historique des locations.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card h-100" onclick="window.location.href='pages/reservations.html'">
+                    <div class="card-body text-center">
+                        <i class="bi bi-calendar-plus display-1 text-warning mb-3"></i>
+                        <h3 class="card-title">Réservations</h3>
+                        <p class="card-text">Gérez les réservations futures et les demandes de location.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Statistiques Rapides</h4>
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <h5>Vélos Disponibles</h5>
+                                <p id="availableBikes" class="h3 text-success">-</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>Locations en Cours</h5>
+                                <p id="activeRentals" class="h3 text-primary">-</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>Réservations à Venir</h5>
+                                <p id="upcomingReservations" class="h3 text-warning">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-light mt-5 py-3">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2024 Bike Rental. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE_URL = '/bike-rental/public/api';
+
+        // Vérifier l'authentification
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/current-user`);
+                if (!response.ok) {
+                    window.location.href = 'pages/login.html';
+                    return;
+                }
+                const user = await response.json();
+                if (user.role === 'admin') {
+                    window.location.href = 'pages/admin/dashboard.html';
+                }
+            } catch (error) {
+                window.location.href = 'pages/login.html';
+            }
+        }
+
+        // Charger les statistiques
+        async function loadStats() {
+            try {
+                const [bikesResponse, rentalsResponse, reservationsResponse] = await Promise.all([
+                    fetch(`${API_BASE_URL}/bikes`),
+                    fetch(`${API_BASE_URL}/rentals`),
+                    fetch(`${API_BASE_URL}/reservations`)
+                ]);
+
+                const bikes = await bikesResponse.json();
+                const rentals = await rentalsResponse.json();
+                const reservations = await reservationsResponse.json();
+
+                document.getElementById('availableBikes').textContent = 
+                    bikes.filter(bike => bike.status === 'available').length;
+                document.getElementById('activeRentals').textContent = 
+                    rentals.filter(rental => rental.status === 'active').length;
+                document.getElementById('upcomingReservations').textContent = 
+                    reservations.filter(res => res.status === 'pending').length;
+            } catch (error) {
+                console.error('Erreur lors du chargement des statistiques:', error);
+            }
+        }
+
+        // Déconnexion
+        async function logout() {
+            try {
+                await fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'POST'
+                });
+                window.location.href = 'pages/login.html';
+            } catch (error) {
+                console.error('Erreur lors de la déconnexion:', error);
+            }
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadStats();
+        });
+    </script>
+</body>
+</html> 

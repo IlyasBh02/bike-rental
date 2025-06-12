@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord Admin - Bike Rental</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #212529;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,.8);
+            padding: 1rem;
+        }
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255,255,255,.1);
+        }
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: #0d6efd;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .stats-card {
+            border-left: 4px solid #0d6efd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0 sidebar">
+                <div class="p-3">
+                    <h4 class="text-center mb-4">
+                        <i class="bi bi-bicycle"></i> Bike Rental
+                    </h4>
+                    <hr>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" onclick="showSection('dashboard')">
+                                <i class="bi bi-speedometer2"></i> Tableau de bord
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('bikes')">
+                                <i class="bi bi-bicycle"></i> Gestion des vélos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('rentals')">
+                                <i class="bi bi-calendar-check"></i> Gestion des locations
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('reservations')">
+                                <i class="bi bi-calendar-plus"></i> Gestion des réservations
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('users')">
+                                <i class="bi bi-people"></i> Gestion des utilisateurs
+                            </a>
+                        </li>
+                        <li class="nav-item mt-4">
+                            <a class="nav-link text-danger" href="#" onclick="logout()">
+                                <i class="bi bi-box-arrow-right"></i> Déconnexion
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Dashboard Section -->
+                <div id="dashboard" class="section">
+                    <h2 class="mb-4">Tableau de bord</h2>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card stats-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Vélos disponibles</h5>
+                                    <h2 id="availableBikes">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card stats-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Locations actives</h5>
+                                    <h2 id="activeRentals">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card stats-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Réservations en attente</h5>
+                                    <h2 id="pendingReservations">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bikes Section -->
+                <div id="bikes" class="section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Gestion des vélos</h2>
+                        <button class="btn btn-primary" onclick="showAddBikeForm()">
+                            <i class="bi bi-plus"></i> Ajouter un vélo
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Tarif horaire</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bikesList"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Rentals Section -->
+                <div id="rentals" class="section" style="display: none;">
+                    <h2 class="mb-4">Gestion des locations</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Client</th>
+                                    <th>Vélo</th>
+                                    <th>Début</th>
+                                    <th>Fin prévue</th>
+                                    <th>Status</th>
+                                    <th>Montant</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rentalsList"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Reservations Section -->
+                <div id="reservations" class="section" style="display: none;">
+                    <h2 class="mb-4">Gestion des réservations</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Client</th>
+                                    <th>Vélo</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reservationsList"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Users Section -->
+                <div id="users" class="section" style="display: none;">
+                    <h2 class="mb-4">Gestion des utilisateurs</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom</th>
+                                    <th>Email</th>
+                                    <th>Rôle</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal fade" id="bikeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bikeModalTitle">Ajouter un vélo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="bikeForm">
+                        <input type="hidden" id="bikeId">
+                        <div class="mb-3">
+                            <label for="type" class="form-label">Type</label>
+                            <select class="form-select" id="type" required>
+                                <option value="classic">Classique</option>
+                                <option value="electric">Électrique</option>
+                                <option value="cargo">Cargo</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" required>
+                                <option value="available">Disponible</option>
+                                <option value="maintenance">En maintenance</option>
+                                <option value="rented">Loué</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="hourly_rate" class="form-label">Tarif horaire (€)</label>
+                            <input type="number" class="form-control" id="hourly_rate" step="0.01" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="saveBike()">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE_URL = '/bike-rental/public/api';
+        let bikeModal;
+        let currentBikeId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            bikeModal = new bootstrap.Modal(document.getElementById('bikeModal'));
+            checkAuth();
+            loadDashboardStats();
+        });
+
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/current-user`);
+                if (!response.ok) {
+                    window.location.href = '../login.html';
+                    return;
+                }
+                const user = await response.json();
+                if (user.role !== 'admin') {
+                    window.location.href = '../index.html';
+                }
+            } catch (error) {
+                window.location.href = '../login.html';
+            }
+        }
+
+        async function loadDashboardStats() {
+            try {
+                const [bikesResponse, rentalsResponse, reservationsResponse] = await Promise.all([
+                    fetch(`${API_BASE_URL}/bikes`),
+                    fetch(`${API_BASE_URL}/rentals`),
+                    fetch(`${API_BASE_URL}/reservations`)
+                ]);
+
+                const bikes = await bikesResponse.json();
+                const rentals = await rentalsResponse.json();
+                const reservations = await reservationsResponse.json();
+
+                document.getElementById('availableBikes').textContent = 
+                    bikes.filter(bike => bike.status === 'available').length;
+                document.getElementById('activeRentals').textContent = 
+                    rentals.filter(rental => rental.status === 'active').length;
+                document.getElementById('pendingReservations').textContent = 
+                    reservations.filter(res => res.status === 'pending').length;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(sectionId).style.display = 'block';
+
+            // Update active nav link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Load section data
+            switch (sectionId) {
+                case 'bikes':
+                    loadBikes();
+                    break;
+                case 'rentals':
+                    loadRentals();
+                    break;
+                case 'reservations':
+                    loadReservations();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+            }
+        }
+
+        async function loadBikes() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/bikes`);
+                if (!response.ok) throw new Error('Erreur lors du chargement des vélos');
+                
+                const bikes = await response.json();
+                const bikesList = document.getElementById('bikesList');
+                bikesList.innerHTML = bikes.map(bike => `
+                    <tr>
+                        <td>${bike.id}</td>
+                        <td>${bike.type}</td>
+                        <td>
+                            <span class="badge ${getStatusBadgeClass(bike.status)}">
+                                ${getStatusLabel(bike.status)}
+                            </span>
+                        </td>
+                        <td>${bike.hourly_rate}€</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editBike(${bike.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteBike(${bike.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        function showAddBikeForm() {
+            currentBikeId = null;
+            document.getElementById('bikeModalTitle').textContent = 'Ajouter un vélo';
+            document.getElementById('bikeForm').reset();
+            bikeModal.show();
+        }
+
+        async function editBike(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/bikes/${id}`);
+                if (!response.ok) throw new Error('Erreur lors du chargement du vélo');
+                
+                const bike = await response.json();
+                currentBikeId = id;
+                document.getElementById('bikeModalTitle').textContent = 'Modifier le vélo';
+                document.getElementById('type').value = bike.type;
+                document.getElementById('status').value = bike.status;
+                document.getElementById('hourly_rate').value = bike.hourly_rate;
+                document.getElementById('description').value = bike.description || '';
+                
+                bikeModal.show();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function saveBike() {
+            const data = {
+                type: document.getElementById('type').value,
+                status: document.getElementById('status').value,
+                hourly_rate: parseFloat(document.getElementById('hourly_rate').value),
+                description: document.getElementById('description').value
+            };
+
+            try {
+                const url = currentBikeId 
+                    ? `${API_BASE_URL}/bikes/${currentBikeId}`
+                    : `${API_BASE_URL}/bikes`;
+                
+                const response = await fetch(url, {
+                    method: currentBikeId ? 'PUT' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Erreur lors de l\'enregistrement');
+                }
+
+                bikeModal.hide();
+                loadBikes();
+                loadDashboardStats();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function deleteBike(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce vélo ?')) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/bikes/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.message || 'Erreur lors de la suppression');
+                    }
+
+                    loadBikes();
+                    loadDashboardStats();
+                } catch (error) {
+                    alert(error.message);
+                }
+            }
+        }
+
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'available': return 'bg-success';
+                case 'maintenance': return 'bg-warning';
+                case 'rented': return 'bg-primary';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function getStatusLabel(status) {
+            switch (status) {
+                case 'available': return 'Disponible';
+                case 'maintenance': return 'En maintenance';
+                case 'rented': return 'Loué';
+                default: return status;
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'POST'
+                });
+                window.location.href = '../login.html';
+            } catch (error) {
+                console.error('Error during logout:', error);
+            }
+        }
+    </script>
+</body>
+</html> 

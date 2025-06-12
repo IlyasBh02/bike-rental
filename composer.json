@@ -1,0 +1,14 @@
+{
+    "name": "bike-rental/api",
+    "description": "API de gestion de location de vélos",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "ext-pdo": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+} 
